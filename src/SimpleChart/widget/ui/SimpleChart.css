@@ -1,0 +1,148 @@
+.SimpleChartOuter {
+	position: relative;
+}
+
+.SimpleChartFilterOpen {
+	display:block;
+	position:absolute;
+	right:15px;
+	top: 25px;
+	padding-right: 15px;
+	cursor: pointer;
+	font-weight: bold;
+	background: url(SimpleChart/widget/ui/filter_arrow.png) no-repeat right 7px;
+}
+
+.SimpleChartFilterClose {
+	display: block;
+	padding-bottom: 5px;
+	margin-top: -5px;
+	font-weight: bold;
+	text-indent: -9999px;
+	cursor: pointer;
+	background: url(SimpleChart/widget/ui/close.png) no-repeat right;
+}
+
+.SimpleChartRangeNode {
+	display: none;
+	position: absolute;
+	width: 268px;
+	padding: 5px;
+	right:15px;
+	top:28px;
+	border: 1px solid #979BA2;
+	background: #fbfbfb url(SimpleChart/widget/ui/filter_bg.png) repeat-y top left;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+}
+
+.SimpleChartFilterCat {
+	margin-bottom: 5px;
+}
+
+.SimpleChartFilterCheckboxLabel {
+	padding-right: 5px;
+}
+
+.SimpleChartFilterLabel {
+	display: inline-block;
+	width: 80px;
+	padding-right: 5px;
+}
+
+.SimpleChartFilterInput {
+	width: 85px;
+	padding: 1px;
+}
+
+.SimpleChartFilterUpdate{
+	
+}
+
+.SimpleChartFilterClear{
+	
+}
+
+.SimpleChartFlotPieLabel{
+	font-size:8pt;
+	text-align:center;
+	padding:2px;
+	color:white;
+}
+
+.SimpleChartFlotTickLabel{
+	
+}
+
+.SimpleChartCaption {
+	font-size:large;
+	left:180px;
+	position:absolute;
+	top: 20px !important;
+}
+
+.SimpleChartXAxis {
+	font-size: 11px;
+}
+
+.SimpleChartYAxis {
+	left: 10px !important;
+	top: 25px !important;
+	font-weight: bold;
+	font-size: 11px;
+}
+
+.SimpleChartYAxis2 {
+	top: 25px !important;
+	font-weight:bold;
+	font-size: 11px;
+}
+
+.SimpleChartFlotWrapperNode {
+/*	padding: 5px; */
+}
+
+.SimpleChartFlotContainer {
+	padding: 46px 10px 10px;
+	position: relative;
+	outline-style:none;
+	border-width: 1px;
+	border-color: #aaa #ccc #ccc #ccc;
+	border-style: solid;
+}
+
+.SimpleChartFlotTooltip {
+	position: absolute;
+	display: none;
+	border: 2px solid #333;
+	padding: 3px 5px;
+	filter:alpha(opacity=90);
+	-moz-opacity:0.9;
+	-khtml-opacity: 0.9;
+	opacity: 0.9;
+	z-index : 10000;
+	color: #000;
+	font-weight: normal;
+	background-color: #FFF;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+}
+.tundra .dijitCheckBox, 
+.tundra .dijitCheckBoxIcon {
+	background-image: url(SimpleChart/widget/ui/checkmark.png);
+}
+.tundra .dijitCheckBoxHover {
+	background-position: 0 50%;
+}
+.dijitCheckBox input, 
+.dijitRadio input {
+	cursor: pointer;
+}
+.legendColorBox {
+	padding-bottom: 1px;
+}
+.legendLabel {
+	padding: 0 0 1px 5px;
+}
