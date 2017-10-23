@@ -1,4 +1,3 @@
-dojo.registerModulePath("SimpleChart", "../../widgets/SimpleChart");
 /**
 	SimpleChart
 	========================
@@ -19,14 +18,22 @@ dojo.registerModulePath("SimpleChart", "../../widgets/SimpleChart");
 
 	File is best readable with tabwidth = 2;
 */
-dojo.provide("SimpleChart.widget.SimpleChart");
-if (!dojo.getObject("widgets.widgets"))
-		mendix.dom.insertCss(mx.moduleUrl("SimpleChart.widget", "ui/SimpleChart250.css"));			
+define([
+	"dojo/_base/declare",
+	"mxui/widget/_WidgetBase",
+	'mxui/dom',
+	"dojo/_base/lang",
+	"dojo/dom-attr",
+	"dojo/dom-style",
+	"dojo/dom-class",
+	"dojo/query",
+	"dojo/dom-construct"
+], function (declare, _WidgetBase, dom, lang, domAttr, domStyle, domClass, query, domConstruct) {
+	"use strict";
 
-mendix.widget.declare('SimpleChart.widget.SimpleChart', {
+	return declare("SimpleChart.widget.SimpleChart", [ _WidgetBase ], {
 	//DECLARATION
-	addons       : [mendix.addon._Contextable],
-    inputargs: { 
+	// addons       : [mendix.addon._Contextable],
 		tabindex 	: 0,
 		wwidth 		: 400,
 		wheight		: 400,
@@ -63,8 +70,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 		uselinearscaling : true,
 		constraintentity : '',
 		filtername : '',
-		filterattr : ''
-    },
+		filterattr : '',
 	
 	//IMPLEMENTATION
 	dataobject : null,
@@ -78,7 +84,9 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 	refreshing : 0,
 
     splitprop : function(prop) {
-		return this[prop] != "" ? this[prop].split(";") : [""] ; 		
+		if(this[prop]) {
+		return this[prop] != "" ? this[prop].split(";") : [""] ; 
+		}		
 	},
 
 
@@ -104,8 +112,8 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 		if (dojo.version.major == 5) {
 				this.fixObjProps(['doesnotmatter2', 'stilldoesntmatter']);
 		} 
-		dojo.style(this.domNode, { width : this.wwidth + 'px', height : this.wheight + 'px'});				
-		mendix.dom.addClass(this.domNode, "SimpleChartOuter");
+		domStyle.set(this.domNode, { width : this.wwidth + 'px', height : this.wheight + 'px'});				
+		domClass.add(this.domNode, "SimpleChartOuter");
 		
 		//create series object
 		this.series = [];
@@ -154,11 +162,11 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 			this.refresh(); //Note: causes charts in dataviews which do not use context to be loaded twice
         }
 		else
-			this.initContext();
+			// this.initContext();
 		
 		this.start();
 		this.createrangeNode();
-		this.actRendered();
+		// this.actRendered();
 	},
 	
 	start : function() {
@@ -189,7 +197,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 		logger.debug(this.id + ".applyContext"); 
 		
         if (this.dataobject && this.autorefresh)
-            mx.processor.unSubscribeFromGUID(this, this.dataobject);
+			mx.data.unsubscribe(this, this.dataobject);
         
         if (context && context.getTrackID() != "" && this.usecontext) {
 			this.dataobject = context.getTrackID();
@@ -197,7 +205,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
             this.refresh();
             
             if (this.autorefresh) 
-                mx.processor.subscribeToGUID(this, this.dataobject);
+				mx.data.subscribe(this, this.dataobject);
 		}
 		else
 			logger.warn(this.id + ".applyContext received empty context");
@@ -276,7 +284,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 		}
 		
 		//execute the get. 
-		mx.processor.get({
+		mx.data.get({
 				xpath : "//" + serie.entity + this.getActiveConstraint(index) + serie.constraint.replace(/\[\%CurrentObject\%\]/gi, this.dataobject),
 				filter : serie.schema, //TODO: should be schema : serie.schema, but only in 2.5.1 and upward, 
 				callback : dojo.hitch(this, this.retrieveData, index),
@@ -398,7 +406,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
             className: labelattr.length == 1 ? serie.entity : labelattr[1] 
           });
           
-          if (meta.getAttributeClass(attrname) == 'Enum') {
+          if (meta.getAttributeType(attrname) == 'Enum') {
             var enums = meta.getEnumMap(attrname);
 
             //put them in a maps
@@ -474,13 +482,15 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 	},
 	
 	clickCallback : function(serie, itemindex, clientX, clientY) {
-        if (this.series[serie].click) mx.processor.xasAction({
-			error       : function() {
-				logger.error(this.id + "error: XAS error executing microflow");
+		if (this.series[ serie ].click) mx.data.action({
+			params: {
+				actionname: this.series[ serie ].click,
+				applyto: 'selection',
+				guids: [ this.series[ serie ].data[ itemindex ].guid ]
 			},
-			actionname  : this.series[serie].click,
-			applyto     : 'selection',
-			guids       : [this.series[serie].data[itemindex].guid]
+			error: function () {
+				logger.error(this.id + "error: XAS error executing microflow");
+			}
 		});		
 	},
 	
@@ -666,15 +676,15 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 		if (this.constraintentity == "")
 			return;
 		
-		var open = mendix.dom.span({'class': "SimpleChartFilterOpen"}, "(filter)");
+		var open = dom.create("span", {'class': "SimpleChartFilterOpen"}, "(filter)");
 		this.connect(open, "onclick", function() { dojo.style(this.rangeNode, {display : 'block'}); });
 		dojo.place(open, this.domNode);		
 		
-		var n = this.rangeNode = mendix.dom.div({ 'class' : 'SimpleChartRangeNode' });
+		var n = this.rangeNode = dom.create("div", { 'class' : 'SimpleChartRangeNode' });
 		dojo.place(n, this.domNode);
 		
 		//retrieve the type and then construct the inputs
-		mx.metadata.getMetaEntity({ 
+		mx.meta.getEntity({ 
 			className :this.constraintentity,
 			callback : dojo.hitch(this, this.addFilterInputs)
 		});
@@ -691,7 +701,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 			dojo.require("dijit.form.CheckBox");
 			dojo.require("dijit.form.Button");		
 			
-			var close = mendix.dom.span({'class': "SimpleChartFilterClose"}, "x");
+			var close = dom.create("span", {'class': "SimpleChartFilterClose"}, "x");
 			this.connect(close, "onclick", this.closeFilterBox);
 			dojo.place(close, this.rangeNode);
 				
@@ -745,7 +755,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
 			}
 
 			for(var i = 0; i < this.inputs.length; i++)
-				mendix.dom.addClass(this.inputs[i].domNode, "SimpleChartFilterInput");
+			domClass.add(this.inputs[i].domNode, "SimpleChartFilterInput");
 
 			var update = new dijit.form.Button({'class': "SimpleChartFilterUpdate", label : "update", onClick : dojo.hitch(this, function() {
 				this.refresh();
@@ -766,7 +776,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
             
         dojo.empty(catNode);
         
-        dojo.place(mendix.dom.span({'class': "SimpleChartFilterLabel"}, filter.name),catNode);
+        dojo.place(dom.create("span", {'class': "SimpleChartFilterLabel"}, filter.name),catNode);
         
         var attrparts = filter.attr.split("/");
         var ref = attrparts[0];
@@ -779,7 +789,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
           if (this.series[i].entity == this.constraintentity)
             dataconstraint += this.series[i].constraint; //apply constraint of the data to the selectable items.
         
-        mx.processor.get({
+        mx.data.get({
             xpath : ("//" + entity + "[" + ref + "/" + this.constraintentity +  dataconstraint + "]").replace(/\[\%CurrentObject\%\]/gi, this.dataobject),
             filter : {
 			  attributes : [ attr ],
@@ -915,4 +925,7 @@ mendix.widget.declare('SimpleChart.widget.SimpleChart', {
       /*console.log("out");
       console.dir(base);*/
     }
-});
+		});
+	});
+
+require([ "SimpleChart/widget/SimpleChart" ]);
