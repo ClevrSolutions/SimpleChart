@@ -1,11 +1,13 @@
-dojo.provide("SimpleChart.widget.flot");
-dojo.require("SimpleChart.widget.lib.flot.excanvas_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_min"); 
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_pie_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_selection_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_stack_min");
+// dojo.provide("SimpleChart.widget.flot");
+// dojo.require("SimpleChart.widget.lib.flot.excanvas_min");
+// dojo.require("SimpleChart.widget.lib.flot.jquery_flot_min"); 
+// dojo.require("SimpleChart.widget.lib.flot.jquery_flot_pie_min");
+// dojo.require("SimpleChart.widget.lib.flot.jquery_flot_selection_min");
+// dojo.require("SimpleChart.widget.lib.flot.jquery_flot_stack_min");
 
-dojo.setObject("SimpleChart.widget.flot", {
+require(["dojo/_base/declare", "mxui/widget/_WidgetBase", "dojo/_base/lang", "SimpleChart/widget/lib/flot/jquery_flot_pie_min", "SimpleChart/widget/lib/flot/jquery_flot_selection_min", "SimpleChart/widget/lib/flot/jquery_flot_stack_min", "SimpleChart/widget/SimpleChart", "SimpleChart/widget/lib/flot/excanvas_min", "SimpleChart/widget/lib/flot/jquery_flot_min" ], function(declare, _WidgetBase, lang, SimpleChart){
+	lang.setObject("SimpleChart.widget.flot", {
+
 	uninitializeChart : function() {
 		//TODO:
 		//this.chart && this.chart.destroy();
@@ -298,4 +300,7 @@ dojo.setObject("SimpleChart.widget.flot", {
 	}
 }
 	
-);
+	);
+});
+require([ "SimpleChart/widget/flot" ],
+	function () {});

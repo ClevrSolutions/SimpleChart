@@ -1,7 +1,8 @@
-dojo.provide("SimpleChart.widget.highcharts");
-dojo.require("SimpleChart.widget.lib.highcharts.highcharts_src"); //or _src		
+// dojo.provide("SimpleChart.widget.highcharts");
+// dojo.require("SimpleChart.widget.lib.highcharts.highcharts_src"); //or _src		
 
-dojo.setObject("SimpleChart.widget.highcharts", {
+require(["dojo/_base/lang"], function(lang){
+	lang.setObject("SimpleChart.widget.highcharts", {
 	//free up any resources used by the chart
 	uninitializeChart : function() {
 		this.chart && this.chart.destroy();
@@ -187,4 +188,6 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 		}
 		return null;
 		}
+	});
 });
+require([ "SimpleChart/widget/lib/highcharts/highcharts_src" ]);
