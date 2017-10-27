@@ -21,7 +21,7 @@
 define([
 	"dojo/_base/declare",
 	"mxui/widget/_WidgetBase",
-	'mxui/dom',
+	"mxui/dom",
 	"dojo/_base/lang",
 	"dojo/dom-attr",
 	"dojo/dom-style",
@@ -32,8 +32,14 @@ define([
 	"dijit/form/NumberTextBox",
 	"dijit/form/TextBox",
 	"dijit/form/CheckBox",
-	"dijit/form/Button"
-], function (declare, _WidgetBase, dom, lang, domAttr, domStyle, domClass, query, domConstruct, DateTextBox, NumberTextBox, TextBox, CheckBox, Button) {
+	"dijit/form/Button",
+	"dojo/dom-geometry",
+	"dojo/_base/array",
+	"dojo/html",
+	"dojo/date/locale",
+	"dojo/number",
+	"dojo/dom-style"
+], function (declare, _WidgetBase, dom, lang, domAttr, domStyle, domClass, query, domConstruct, DateTextBox, NumberTextBox, TextBox, CheckBox, Button, domGeom, array, html, locale, number, domStyle) {
 	// "use strict";
 
 	try{
@@ -88,29 +94,31 @@ define([
 	iscategories : false, //use categories as x axis
 	rangeNode : null,
 	refreshing : 0,
+	receivedseries  : null,
+	flotNode: null,
 
     splitprop : function(prop) {
 		return prop != "" ? prop.split(";") : [""] ; 
 	},
 
-
-	fixObjProps : function(props) {
-	    var args = {};
+	// Not used
+	// fixObjProps : function(props) { 
+	//     var args = {};
 	    
-	    for (var i = 0, prop; prop = props[i]; i++) {
-	        var arr = this[prop];
+	//     for (var i = 0, prop; prop = props[i]; i++) {
+	//         var arr = this[prop];
 
-	        for (var j = 0, obj; obj = arr[j]; j++) {
-	            for (var p in obj) {
-	                (args[p] || (args[p] = [])).push(obj[p]);
-	            }
-	        }
-	    }
+	//         for (var j = 0, obj; obj = arr[j]; j++) {
+	//             for (var p in obj) {
+	//                 (args[p] || (args[p] = [])).push(obj[p]);
+	//             }
+	//         }
+	//     }
 	    
-	    for (var a in args) {
-	        this[a] = args[a].join(";");
-	    }
-	},
+	//     for (var a in args) {
+	//         this[a] = args[a].join(";");
+	//     }
+	// },
 
 	buildRendering: function () {
 		this.inherited(arguments);
@@ -146,21 +154,19 @@ define([
 		// 	}
 				
 		
-		if (typeof(jQuery) == "undefined")
+		if (typeof(jQuery) == "undefined") {
 			// dojo.require("SimpleChart.widget.lib.flot.jquery_min"); //required by both implementations
-
+		}
 		//mix chart implementations in as kind of addon, but lazy loaded..
 		if (this.chartprovider == 'flot'){
-			// dojo.require("SimpleChart.widget.flot");
-			dojo.mixin(this, SimpleChart.widget.flot);
+			lang.mixin(this, SimpleChart.widget.flot);
 		}
 		else if (this.chartprovider == 'highcharts') {
-			// dojo.require("SimpleChart.widget.highcharts");
-			dojo.mixin(this, SimpleChart.widget.highcharts);
+			lang.mixin(this, SimpleChart.widget.highcharts);
 		}
 		
 		//create the chart
-		// this.renderChart();
+		this.renderChart();
  
         //trigger data loading
         this.isresumed = true;
@@ -169,17 +175,14 @@ define([
             this.hascontext = true;
 			this.refresh(); //Note: causes charts in dataviews which do not use context to be loaded twice
         }
-		else
-			// this.initContext();
 		
 		this.start();
 		this.createrangeNode();
-		// this.actRendered();
 	},
 	
 	start : function() {
 		if(this.polltime > 0 && this.refreshhandle == null)
-			this.refreshhandle = setInterval(dojo.hitch(this, function() {
+			this.refreshhandle = setInterval(lang.hitch(this, function() {
 				this.refresh();
 			}), this.polltime * 1000);
 	},
@@ -239,17 +242,17 @@ define([
         
         this.waitingForVisible = true;
             
-        var loadfunc = dojo.hitch(this, function() {
+        var loadfunc = lang.hitch(this, function() {
             for(var i = 0; i < this.doesnotmatter2.length; i++)
                 this.loadSerie(i);
             this.waitingForVisible = false;
         });
         
-        if (dojo.marginBox(this.domNode).h == 0) { //postpone update if hidden
+        if (domGeom.getMarginBox(this.domNode).h == 0) { //postpone update if hidden
             mendix.lang.runOrDelay( 
                 loadfunc, 
-                dojo.hitch(this, function() {
-                    return dojo.marginBox(this.domNode).h > 0;
+                lang.hitch(this, function() {
+                    return domGeom.getMarginBox(this.domNode).h > 0;
                 })
             );
         }
@@ -294,8 +297,8 @@ define([
 		mx.data.get({
 				xpath : "//" + serie.seriesentity + this.getActiveConstraint(index) + serie.seriesconstraint.replace(/\[\%CurrentObject\%\]/gi, this.dataobject),
 				schema : serie.schema, //TODO: should be schema : serie.schema, but only in 2.5.1 and upward, 
-				callback : dojo.hitch(this, this.retrieveData, index),
-				error: dojo.hitch(this, function(err) {
+				callback : lang.hitch(this, this.retrieveData, index),
+				error: lang.hitch(this, function(err) {
 					console.error("Unable to retrieve data for xpath '" + xpath + "': " + err, err);
 				})
 		});
@@ -382,7 +385,7 @@ define([
                         y : this.aggregate(serie.seriesaggregate, currenty)
                     };
 
-                    newitem.labely = dojo.trim(this.getFormattedYValue(serie, newitem.y));
+                    newitem.labely = lang.trim(this.getFormattedYValue(serie, newitem.y));
                     if (this.charttype == 'pie') //#ticket 9446, show amounts if pie
                         newitem.labelx += " ("  + newitem.labely + ")";
                     
@@ -394,9 +397,8 @@ define([
             //sort
             this.sortdata(seriesindex);
 
-			if (dojo.marginBox(this.domNode).h > 0) //bugfix: do not draw if the element is hidden
-			SimpleChart.widget.flot.renderSerie(seriesindex);
-			// this.renderSerie(seriesindex);
+			if (domGeom.getMarginBox(this.domNode).h > 0) //bugfix: do not draw if the element is hidden
+				this.renderSerie(seriesindex);
 		}
 		catch(e) {
 			console.error(this.id +" Error while rendering chart data " + e, e);
@@ -419,14 +421,14 @@ define([
 
             //put them in a maps
             var targetmap = {};
-            dojo.forEach(serie.data, function(item) {
+            array.forEach(serie.data, function(item) {
               targetmap[item.origx] = item;
             });
             
             //create new list
             var result = [];
             var i = 0; 
-            dojo.forEach(enums, function(val) {
+            array.forEach(enums, function(val) {
               if (targetmap[val.key]) {
                 result.push(targetmap[val.key]);
                 targetmap[val.key].index = i; //update index!
@@ -444,32 +446,32 @@ define([
 		switch(aggregate) {
 			case 'sum' :
             case 'logsum':
-				dojo.forEach(vals, function(value) {
+				array.forEach(vals, function(value) {
 					result += value;
 				});
                 if (aggregate == 'logsum')
                   result = Math.log(result);
 				break;
 			case 'count':
-				dojo.forEach(vals, function(value) {
+				array.forEach(vals, function(value) {
 					result += 1;
 				});				
 				break;
 			case 'avg':
-				dojo.forEach(vals, function(value) {
+				array.forEach(vals, function(value) {
 					result += value;
 				});				
 				break;
 			case 'min':
 				result = Number.MAX_VALUE;
-				dojo.forEach(vals, function(value) {
+				array.forEach(vals, function(value) {
 					if(value < result)
 						result = value;
 				});				
 				break;
 			case 'max':
 				result = Number.MIN_VALUE;
-				dojo.forEach(vals, function(value) {
+				array.forEach(vals, function(value) {
 					if(value > result)
 						result = value;
 				});								
@@ -508,8 +510,8 @@ define([
 	},
 	
 	showError : function (msg) {
-		dojo.empty(this.domNode);
-		dojo.html.set(this.domNode, "SimpleChart error: " + msg);
+		domConstruct.empty(this.domNode);
+		html.set(this.domNode, "SimpleChart error: " + msg);
 		console.error("SimpleChart error: " + msg);
 		return null;
 	},
@@ -526,7 +528,7 @@ define([
 			return "";
 		if (this.isdate) {
 			var date = new Date(value);
-			return dojo.date.locale.format(date, this.getDateTimeFormat());
+			return locale.format(date, this.getDateTimeFormat());
 		}
 		if (this.iscategories) { //if categories, than value equals index
 			if (value < this.series[0].data.length)
@@ -534,8 +536,8 @@ define([
 			return "";
 		}
 		if (!this.uselinearscaling)
-			return dojo.number.round(this.series[0].data[value].origx,2);
-		return dojo.number.round(value, 2);
+			return number.round(this.series[0].data[value].origx,2);
+		return number.round(value, 2);
 	},
 	
 	/** maps a plot X value to a label */
@@ -562,7 +564,7 @@ define([
 	},
 
 	getFormattedYValue : function(serie, value) {
-		return ("" + dojo.number.round(value, 2)) + " " +(serie.seriesyaxis == "true" ? this.yunit1 : this.yunit2); 
+		return ("" + number.round(value, 2)) + " " +(serie.seriesyaxis == "true" ? this.yunit1 : this.yunit2); 
 	},
 
 	
@@ -628,7 +630,7 @@ define([
 							res += "[" + filter.attr + "<="+ filter.value.end + "]";
 						break;
 					case "String":
-						if (dojo.isString(filter.value))
+						if (lang.isString(filter.value))
 							res += "[contains(" + filter.attr + ",'" + this.escapeQuotes(filter.value) + "')]";
 						break;
 					case "Boolean":
@@ -685,16 +687,16 @@ define([
 			return;
 		
 		var open = dom.create("span", {'class': "SimpleChartFilterOpen"}, "(filter)");
-		this.connect(open, "onclick", function() { dojo.style(this.rangeNode, {display : 'block'}); });
-		dojo.place(open, this.domNode);		
+		this.connect(open, "onclick", function() { domStyle.set(this.rangeNode, {display : 'block'}); });
+		domConstruct.place(open, this.domNode);		
 		
 		var n = this.rangeNode = dom.create("div", { 'class' : 'SimpleChartRangeNode' });
-		dojo.place(n, this.domNode);
+		domConstruct.place(n, this.domNode);
 		
 		//retrieve the type and then construct the inputs
 		mx.meta.getEntity({ 
 			className :this.constraintentity,
-			callback : dojo.hitch(this, this.addFilterInputs)
+			callback : lang.hitch(this, this.addFilterInputs)
 		});
 	},
 	
@@ -702,33 +704,28 @@ define([
 	
 	addFilterInputs : function(meta) {
 		try {
-			this.inputs = [];
-			// dojo.require("dijit.form.DateTextBox");
-			// dojo.require("dijit.form.NumberTextBox");
-			// dojo.require("dijit.form.TextBox");
-			// dojo.require("dijit.form.CheckBox");
-			// dojo.require("dijit.form.Button");		
+			this.inputs = [];	
 			
 			var close = dom.create("span", {'class': "SimpleChartFilterClose"}, "x");
 			this.connect(close, "onclick", this.closeFilterBox);
-			dojo.place(close, this.rangeNode);
+			domConstruct.place(close, this.rangeNode);
 				
 			for(var i = 0; i < this.filters.length; i++) {
 				var filter = this.filters[i];
 
 				filter.value = {};
-				var catNode = mendix.dom.div({'class': "SimpleChartFilterCat"});
-				dojo.place(catNode, this.rangeNode);
+				var catNode = dom.create("div",{'class': "SimpleChartFilterCat"});
+				domConstruct.place(catNode, this.rangeNode);
 
                 if (filter.attr.indexOf("/") > -1) {
                   if (this.usecontext)
-                    this.connect(this, 'applyContext', dojo.hitch(this, this.addReferencedFilterAttr, filter, catNode));//wait for context
+                    this.connect(this, 'applyContext', lang.hitch(this, this.addReferencedFilterAttr, filter, catNode));//wait for context
                   else
                     this.addReferencedFilterAttr(filter, catNode)
                   continue;
                 }
 
-                dojo.place(mendix.dom.span({'class': "SimpleChartFilterLabel"}, filter.name),catNode);				
+                domConstruct.place(dom.create("span",{'class': "SimpleChartFilterLabel"}, filter.name),catNode);				
 				filter.type = meta.getAttributeClass(filter.attr);
                 
 				if (meta.isDate(filter.attr)) 
@@ -752,10 +749,10 @@ define([
 				}
 				else if (filter.type == "String") {
 					var widget = new TextBox();
-					widget.onChange = dojo.hitch(this, function(filter, value){
+					widget.onChange = lang.hitch(this, function(filter, value){
 						filter.value = value;
 					}, filter);
-					dojo.place(widget.domNode, catNode);
+					domConstruct.place(widget.domNode, catNode);
 					this.inputs.push(widget);
 				}				
 				else
@@ -765,13 +762,13 @@ define([
 			for(var i = 0; i < this.inputs.length; i++)
 			domClass.add(this.inputs[i].domNode, "SimpleChartFilterInput");
 
-			var update = new Button({'class': "SimpleChartFilterUpdate", label : "update", onClick : dojo.hitch(this, function() {
+			var update = new Button({'class': "SimpleChartFilterUpdate", label : "update", onClick : lang.hitch(this, function() {
 				this.refresh();
 				this.closeFilterBox();
 			})});
-			dojo.place(update.domNode, this.rangeNode);
-			var clear = new Button({'class': "SimpleChartFilterClear", label : "clear", onClick : dojo.hitch(this, this.clearConstraint)});
-			dojo.place(clear.domNode, this.rangeNode);
+			domConstruct.place(update.domNode, this.rangeNode);
+			var clear = new Button({'class': "SimpleChartFilterClear", label : "clear", onClick : lang.hitch(this, this.clearConstraint)});
+			domConstruct.place(clear.domNode, this.rangeNode);
 		}
 		catch(e) {
 			this.showError("Unable to create filter inputs: " + e);
@@ -782,9 +779,9 @@ define([
         if (!this.dataobject && this.usecontext)
             return; //we are waiting for context...
             
-        dojo.empty(catNode);
+        domConstruct.empty(catNode);
         
-        dojo.place(dom.create("span", {'class': "SimpleChartFilterLabel"}, filter.name),catNode);
+        domConstruct.place(dom.create("span", {'class': "SimpleChartFilterLabel"}, filter.name),catNode);
         
         var attrparts = filter.attr.split("/");
         var ref = attrparts[0];
@@ -804,14 +801,14 @@ define([
               references : {},
 			  sort    : [[attr, 'asc']]
 			},
-            callback : dojo.hitch(this, this.retrieveFilterData, filter, catNode),
-            error : dojo.hitch(this, this.showError)
+            callback : lang.hitch(this, this.retrieveFilterData, filter, catNode),
+            error : lang.hitch(this, this.showError)
         });
     },
     
     retrieveFilterData : function(filter, catNode, objects) {
         var attr = filter.attr.split("/")[2];
-        var enums = dojo.map(objects, function(item) {
+        var enums = array.map(objects, function(item) {
           var val = item.get(attr);
           return { key : val, caption : val }
         }, this);
@@ -819,33 +816,33 @@ define([
     },
     
 	closeFilterBox : function() {
-		dojo.style(this.rangeNode, {display : 'none'});		
+		domStyle.set(this.rangeNode, {display : 'none'});		
 	},
 	
 	createCheckbox : function(catNode, filter, value, caption) {
 		filter.value[value] = true;
 		var checkBox = new CheckBox({value: value, checked: true});
-		dojo.place(checkBox.domNode, catNode);
-		dojo.place(mendix.dom.label({"class" : "SimpleChartFilterCheckboxLabel"}, caption), catNode);
-		checkBox.onChange = dojo.hitch(this, function(filter, value, checked) {
+		domConstruct.place(checkBox.domNode, catNode);
+		domConstruct.place(dom.create("label",{"class" : "SimpleChartFilterCheckboxLabel"}, caption), catNode);
+		checkBox.onChange = lang.hitch(this, function(filter, value, checked) {
 			filter.value[value] = checked;
 		}, filter, value);
 		this.inputs.push(checkBox);
 	},
 	
 	createDropdown : function(catNode, filter, valueArr) {
-		var selectNode = mendix.dom.select();
-		var optionNode = mendix.dom.option({ value : ''}, '');
+		var selectNode = dom.create("select");
+		var optionNode = dom.create("option",{ value : ''}, '');
 		selectNode.appendChild(optionNode);
 		for (var i = 0; i < valueArr.length; i++) 
             if (!filter.value[valueArr[i].key]) { //avoid items to appear twice
-                var optionNode = mendix.dom.option({ value : valueArr[i].key}, valueArr[i].caption);
+                var optionNode = dom.create("option",{ value : valueArr[i].key}, valueArr[i].caption);
                 filter.value[valueArr[i].key] = false;
                 selectNode.appendChild(optionNode);
             }
             
-		dojo.place(selectNode, catNode);
-		this.connect(selectNode, "onchange", dojo.hitch(selectNode, function (filter, e) {
+			domConstruct.place(selectNode, catNode);
+		this.connect(selectNode, "onchange", lang.hitch(selectNode, function (filter, e) {
 			for (var key in filter.value)
 				filter.value[key] = key == this.value;
 		}, filter));
@@ -857,33 +854,33 @@ define([
 		//create two date inputs
 				
 		var widget = new DateTextBox({});
-		widget.onChange = dojo.hitch(this, function(filter, value) {
+		widget.onChange = lang.hitch(this, function(filter, value) {
 			filter.value.start = value == null ? null : value.getTime();
 		}, filter);
-		dojo.place(widget.domNode, catNode);
+		domConstruct.place(widget.domNode, catNode);
 		this.inputs.push(widget);
 		
 		widget = new DateTextBox({});
-		widget.onChange = dojo.hitch(this, function(filter, value) {
+		widget.onChange = lang.hitch(this, function(filter, value) {
 			filter.value.end = value == null ? null : value.getTime();
 		}, filter);
-		dojo.place(widget.domNode, catNode);
+		domConstruct.place(widget.domNode, catNode);
 		this.inputs.push(widget);
 	},
 	
 	createNumberRangeSelector : function(catNode, filter) {
 		var widget = new NumberTextBox();
-		widget.onChange = dojo.hitch(this, function(filter, value){
+		widget.onChange = lang.hitch(this, function(filter, value){
 			filter.value.start = value;
 		}, filter);
-		dojo.place(widget.domNode, catNode);
+		domConstruct.place(widget.domNode, catNode);
 		this.inputs.push(widget);
 		
 		widget = new NumberTextBox();
-		widget.onChange = dojo.hitch(this, function(filter, value){
+		widget.onChange = lang.hitch(this, function(filter, value){
 			filter.value.end = value;
 		}, filter);
-		dojo.place(widget.domNode, catNode);
+		domConstruct.place(widget.domNode, catNode);
 		this.inputs.push(widget);
 	},
     
@@ -903,17 +900,17 @@ define([
         console.dir(toadd);*/
         for(var key in toadd) {
             if ((key in base) &&
-                ((dojo.isArray(toadd[key]) != dojo.isArray(base[key])) || 
-                 (dojo.isObject(toadd[key]) != dojo.isObject(base[key]))))
+                ((lang.isArray(toadd[key]) != lang.isArray(base[key])) || 
+                 (lang.isObject(toadd[key]) != lang.isObject(base[key]))))
                 throw "Cannot mix object properties, property '" + key + "' has different type in source and destination object";
                 
            //mix array
-          if (key in base && dojo.isArray(toadd[key])) { //base is checked in the check above
+          if (key in base && lang.isArray(toadd[key])) { //base is checked in the check above
             var src = toadd[key];
             var target = base[key];
             for(var i = 0; i < src.length; i++) {
                 if (i < target.length) {
-                    if (dojo.isObject(src[i]) && dojo.isObject(target[i]))
+                    if (lang.isObject(src[i]) && lang.isObject(target[i]))
                         this.objectmix(target[i], src[i]);
                     else
                         target[i] = src[i];
@@ -923,7 +920,7 @@ define([
             }     
           }
           //mix object
-          else if (key in base && dojo.isObject(toadd[key])) //base is checked in the check above
+          else if (key in base && lang.isObject(toadd[key])) //base is checked in the check above
             this.objectmix(base[key], toadd[key]);
           //mix primitive
           else
@@ -938,4 +935,6 @@ define([
 		} catch (e) { console.log(e) };
 	});
 
-require([ "SimpleChart/widget/flot", "SimpleChart/widget/lib/flot/jquery_min", "SimpleChart/widget/highcharts", "SimpleChart/widget/SimpleChart" ], function () { });
+require(["SimpleChart/widget/lib/flot/excanvas_min", "SimpleChart/widget/lib/flot/jquery_flot_min", "SimpleChart/widget/lib/flot/jquery_flot_pie_min",
+"SimpleChart/widget/lib/flot/jquery_flot_selection_min", "SimpleChart/widget/lib/flot/jquery_flot_stack_min",
+"SimpleChart/widget/flot", "SimpleChart/widget/highcharts", "SimpleChart/widget/SimpleChart" ], function () {});

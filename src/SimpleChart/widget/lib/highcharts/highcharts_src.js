@@ -14,7 +14,6 @@
 /*global document, window, navigator, setInterval, clearInterval, location, jQuery, $, $each, $merge, Events, Event, Fx, Request */
 
 // dojo.provide("SimpleChart.widget.lib.highcharts.highcharts_src");
-define([], function() {
 (function() {
 
 // encapsulated variables
@@ -8644,4 +8643,3 @@ win.Highcharts = {
 	extendClass: extendClass
 };
 })();
-});
