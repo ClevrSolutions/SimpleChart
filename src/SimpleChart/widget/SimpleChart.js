@@ -19,6 +19,7 @@
 	File is best readable with tabwidth = 2;
 */
 define([
+	"require",
 	"dojo/_base/declare",
 	"mxui/widget/_WidgetBase",
 	"mxui/dom",
@@ -39,7 +40,7 @@ define([
 	"dojo/date/locale",
 	"dojo/number",
 	"dojo/dom-style"
-], function (declare, _WidgetBase, dom, lang, domAttr, domStyle, domClass, query, domConstruct, DateTextBox, NumberTextBox, TextBox, CheckBox, Button, domGeom, array, html, locale, number, domStyle) {
+], function (require, declare, _WidgetBase, dom, lang, domAttr, domStyle, domClass, query, domConstruct, DateTextBox, NumberTextBox, TextBox, CheckBox, Button, domGeom, array, html, locale, number, domStyle) {
 	// "use strict";
 
 	try{
@@ -155,7 +156,7 @@ define([
 				
 		
 		if (typeof(jQuery) == "undefined") {
-			// dojo.require("SimpleChart.widget.lib.flot.jquery_min"); //required by both implementations
+			require(["SimpleChart/widget/lib/flot/jquery_min"]); //required by both implementations
 		}
 		//mix chart implementations in as kind of addon, but lazy loaded..
 		if (this.chartprovider == 'flot'){
@@ -935,6 +936,4 @@ define([
 		} catch (e) { console.log(e) };
 	});
 
-require(["SimpleChart/widget/lib/flot/excanvas_min", "SimpleChart/widget/lib/flot/jquery_flot_min", "SimpleChart/widget/lib/flot/jquery_flot_pie_min",
-"SimpleChart/widget/lib/flot/jquery_flot_selection_min", "SimpleChart/widget/lib/flot/jquery_flot_stack_min",
-"SimpleChart/widget/flot", "SimpleChart/widget/highcharts", "SimpleChart/widget/SimpleChart" ], function () {});
+require(["SimpleChart/widget/lib/flot/jquery_flot_min","SimpleChart/widget/flot", "SimpleChart/widget/highcharts", "SimpleChart/widget/SimpleChart" ], function () {});

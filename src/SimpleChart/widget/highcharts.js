@@ -1,9 +1,8 @@
 require([
 	"dojo/_base/lang",
 	"dojo/number",
-	"dojo/json",
-	"SimpleChart/widget/lib/flot/jquery_min"
-], function (lang, number, JSON, jQuery) {
+	"dojo/json"
+], function (lang, number, JSON) {
 	lang.setObject("SimpleChart.widget.highcharts", {
 	//free up any resources used by the chart
 	uninitializeChart : function() {
@@ -192,4 +191,4 @@ require([
 		}
 	});
 });
-require([ "SimpleChart/widget/lib/flot/jquery_min", "SimpleChart/widget/lib/highcharts/highcharts_src" ], function (jQuery) {});
+require([ "SimpleChart/widget/lib/flot/jquery_min", "SimpleChart/widget/lib/flot/jquery_flot_min", "SimpleChart/widget/lib/highcharts/highcharts_src" ], function (jQuery) {});

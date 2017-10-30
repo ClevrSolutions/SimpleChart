@@ -305,7 +305,7 @@ define([
 	}
 });
 });
-require(["SimpleChart/widget/lib/flot/jquery_min", "SimpleChart/widget/lib/flot/jquery_flot",
-"SimpleChart/widget/lib/flot/jquery_flot_pie_min", "SimpleChart/widget/lib/flot/jquery_flot_selection_min",
-"SimpleChart/widget/lib/flot/jquery_flot_stack_min", "SimpleChart/widget/lib/flot/excanvas_min",
-"SimpleChart/widget/lib/flot/jquery_flot_min","SimpleChart/widget/flot"], function (jQuery) {});
+require(["SimpleChart/widget/lib/flot/jquery_min","SimpleChart/widget/lib/flot/jquery_flot_min",
+ "SimpleChart/widget/lib/flot/jquery_flot", "SimpleChart/widget/lib/flot/jquery_flot_pie_min",
+ "SimpleChart/widget/lib/flot/jquery_flot_selection_min", "SimpleChart/widget/lib/flot/jquery_flot_stack_min",
+ "SimpleChart/widget/lib/flot/excanvas_min","SimpleChart/widget/flot"], function (jQuery) {});
