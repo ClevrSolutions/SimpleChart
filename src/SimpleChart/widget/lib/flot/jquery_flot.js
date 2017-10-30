@@ -1,4 +1,4 @@
-dojo.provide("SimpleChart.widget.lib.flot.jquery_flot");
+// dojo.provide("SimpleChart.widget.lib.flot.jquery_flot");
 /*! Javascript plotting library for jQuery, v. 0.7.
  *
  * Released under the MIT license by IOLA, December 2007.
@@ -2597,4 +2597,4 @@ dojo.provide("SimpleChart.widget.lib.flot.jquery_flot");
         return base * Math.floor(n / base);
     }
     
-})(jQuery);
+    })(jQuery);

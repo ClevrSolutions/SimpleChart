@@ -13,7 +13,7 @@
 /*jslint forin: true */
 /*global document, window, navigator, setInterval, clearInterval, location, jQuery, $, $each, $merge, Events, Event, Fx, Request */
 
-dojo.provide("SimpleChart.widget.lib.highcharts.highcharts_src");
+// dojo.provide("SimpleChart.widget.lib.highcharts.highcharts_src");
 (function() {
 
 // encapsulated variables

@@ -1,7 +1,9 @@
-dojo.provide("SimpleChart.widget.highcharts");
-dojo.require("SimpleChart.widget.lib.highcharts.highcharts_src"); //or _src		
-
-dojo.setObject("SimpleChart.widget.highcharts", {
+require([
+	"dojo/_base/lang",
+	"dojo/number",
+	"dojo/json"
+], function (lang, number, JSON) {
+	lang.setObject("SimpleChart.widget.highcharts", {
 	//free up any resources used by the chart
 	uninitializeChart : function() {
 		this.chart && this.chart.destroy();
@@ -66,12 +68,12 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 
 		//set serie properties
 		var data = {
-			name : serie.names,
+			name : serie.seriesnames,
 			data : serie.data,
-			color: serie.color,				
+			color: serie.seriescolor,				
 			type : this.getChartTypeName(this.charttype),
 			showInLegend: this.charttype == 'pie' ? false : true,
-			yAxis : serie.yaxis == "true" ? 0 : 1
+			yAxis : serie.seriesyaxis == true ? 0 : 1
 		};
 				
 		//make positions for pie
@@ -100,7 +102,7 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 			//create seperate y axises
 			for(var i = 1; i < this.series.length; i++)	{
 				var serie = this.series[i];
-				if (serie.yaxis != "true") { 
+				if (serie.seriesyaxis != "true") { 
 					if (yaxis.length > 1)
 						contiue;
 					else {
@@ -152,7 +154,7 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 					enabled : this.showhover,
 					formatter: function() {
                         return '<b>'+ this.series.name + '</b><br/>' + this.point.labelx +': '+
-                            (self.charttype == 'pie' ? dojo.number.round(this.percentage, 2) + '%' : this.point.labely);
+                            (self.charttype == 'pie' ? number.round(this.percentage, 2) + '%' : this.point.labely);
                     }
 				},
 				plotOptions: {
@@ -164,7 +166,7 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 							enabled: true,
 							formatter: function() {
 								if (this.percentage > 5)
-									return this.point.labelx + "<br/>(" + dojo.number.round(this.point.percentage,0) + "%)";
+									return this.point.labelx + "<br/>(" + number.round(this.point.percentage,0) + "%)";
 								return "";
 							},
 							color: 'white'
@@ -178,7 +180,7 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 			};
 			
 			if (this.extraoptions != '')
-				this.objectmix(options, dojo.fromJson(this.extraoptions));
+				this.objectmix(options, JSON.parse(this.extraoptions));
 			this.chart = new Highcharts.Chart(options);
 		} catch (e) {
 			console.error("Error while building chart: " + e);
@@ -187,4 +189,6 @@ dojo.setObject("SimpleChart.widget.highcharts", {
 		}
 		return null;
 		}
+	});
 });
+require([ "SimpleChart/widget/lib/flot/jquery_min", "SimpleChart/widget/lib/flot/jquery_flot_min", "SimpleChart/widget/lib/highcharts/highcharts_src" ], function (jQuery) {});

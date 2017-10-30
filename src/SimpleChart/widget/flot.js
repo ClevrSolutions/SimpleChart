@@ -1,11 +1,18 @@
-dojo.provide("SimpleChart.widget.flot");
-dojo.require("SimpleChart.widget.lib.flot.excanvas_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_min"); 
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_pie_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_selection_min");
-dojo.require("SimpleChart.widget.lib.flot.jquery_flot_stack_min");
+define([
+	"dojo/_base/lang",
+	"mxui/dom",
+	"dojo/dom-class",
+	"dojo/number",
+	"dojo/json",
+	"dojo/dom-construct",
+	"dojo/dom-style",
+	"SimpleChart/widget/lib/flot/jquery_min",
+	"dojo/html",
+	"dojo/has",
+	"dojo/_base/sniff"
+], function(lang, dom, domClass, number, JSON, domConstruct, domStyle, jQuery, html, has) {
+	return lang.setObject("SimpleChart.widget.flot",{
 
-dojo.setObject("SimpleChart.widget.flot", {
 	uninitializeChart : function() {
 		//TODO:
 		//this.chart && this.chart.destroy();
@@ -60,7 +67,7 @@ dojo.setObject("SimpleChart.widget.flot", {
 				yaxis : {
 					ticks : this.showyticks ? null : 0,
 					tickFormatter : function(val, axis) {
-						return dojo.number.round(val,2) + " " + self.yunit1;
+						return number.round(val,2) + " " + self.yunit1;
 					}
 				},
 				legend : {
@@ -102,13 +109,13 @@ dojo.setObject("SimpleChart.widget.flot", {
 			for(var i = 1; i < this.series.length; i++)	{
 				var serie = this.series[i];
 				if (serie.yaxis != "true") {
-					dojo.mixin(options, { y2axis : {
+					lang.mixin(options, { y2axis : {
 						label : this.yastitle2,
 						show : true,
 						alignTicksWithAxis : 1,
 						ticks : this.showyticks ? null : 0,
 						tickFormatter : function(val, axis) {
-							return dojo.number.round(val,2) + " " + self.yunit2;
+							return number.round(val,2) + " " + self.yunit2;
 						}
 					}});
 					break;
@@ -116,7 +123,7 @@ dojo.setObject("SimpleChart.widget.flot", {
 			}	
 		
 			if (this.charttype == 'pie') {
-				dojo.mixin(options,  {
+				lang.mixin(options,  {
 					series: {
 						pie: { 
 							show: true,
@@ -138,7 +145,7 @@ dojo.setObject("SimpleChart.widget.flot", {
 			} }	}	});	}
 				
 			if (this.extraoptions != '')
-				this.objectmix(options, dojo.fromJson(this.extraoptions));
+				this.objectmix(options, JSON.parse(this.extraoptions));
 
 			this.chart = jQuery.plot(this.flotNode, this.getSeriesData(), options);
 			
@@ -152,7 +159,7 @@ dojo.setObject("SimpleChart.widget.flot", {
 			});
 			if (this.showhover)
 				jQuery(this.flotNode).bind("plothover", function (event, pos, item) {
-					if (!dojo.isIE && item && self.charttype != 'pie') { //showToolTip does not work in IE so...
+					if (!has("ie") && item && self.charttype != 'pie') { //showToolTip does not work in IE so...
 						if (self.previousPoint != item.datapoint) {
 							self.previousPoint = item.datapoint;
 							
@@ -198,17 +205,17 @@ dojo.setObject("SimpleChart.widget.flot", {
 	},
 	
 	drawLabel : function(clazz, x, y, text, style, center) {
-		var span = mendix.dom.span({'class' : 'tickLabel SimpleChartFlotTickLabel ' + clazz}, text);
-		dojo.style(span, dojo.mixin({
+		var span = dom.create("span",{'class' : 'tickLabel SimpleChartFlotTickLabel ' + clazz}, text);
+		domStyle.set(span, lang.mixin({
 			position:'absolute',
 			top: y, left : x
 		}, style == null ? {}: style));
 		
-		dojo.place(span, this.domNode);
+		domConstruct.place(span, this.domNode);
 		if (center == "h")
-			dojo.style(span, "left", x - dojo.style(span, 'width') / 2);
+		domStyle.set(span, "left", x - domStyle.set(span, 'width') / 2);
 		if (center == "r")
-			dojo.style(span, "left", x - dojo.style(span, 'width'));
+		domStyle.set(span, "left", x - domStyle.set(span, 'width'));
 	},
 	
 
@@ -240,12 +247,12 @@ dojo.setObject("SimpleChart.widget.flot", {
 					return seriedata; //for pie charts, the pie data is the data to plot. see: http://flot.googlecode.com/svn/trunk/examples/pie.html
 				
 				var data = {
-					label : serie.names,
+					label : serie.seriesnames,
 					data : seriedata,
-					yaxis : serie.yaxis == "true" ? 1 : 2
+					yaxis : serie.seriesyaxis == true ? 1 : 2
 				};
-				if (serie.color != "")
-					data.color = serie.color;
+				if (serie.seriescolor != "")
+					data.color = serie.seriescolor;
 
 				switch(this.charttype){
 					case 'pie':
@@ -278,15 +285,15 @@ dojo.setObject("SimpleChart.widget.flot", {
 		if (this.inverted)
 			this.showWarning("SimpleChart Flot implementation does not support inverted axis.");
 		
-		this.flotNode = mendix.dom.div({ 'class' : 'SimpleChartFlotWrapperNode'});
-		mendix.dom.addClass(this.domNode, "SimpleChartFlotContainer");
-		dojo.style(this.flotNode, {
+		this.flotNode = dom.create("div",{ 'class' : 'SimpleChartFlotWrapperNode'});
+		domClass.add(this.domNode, "SimpleChartFlotContainer");
+		domStyle.set(this.flotNode, {
 			width : (this.wwidth - 20) + 'px',
 			height : (this.wheight - 40) + 'px'
 		});
-		dojo.place(this.flotNode, this.domNode);			
+		domConstruct.place(this.flotNode, this.domNode);			
 		this.drawLabels();
-		dojo.html.set(this.flotNode, 'Loading chart..');
+		html.set(this.flotNode, 'Loading chart..');
 		return null;
 	},
 	
@@ -296,6 +303,9 @@ dojo.setObject("SimpleChart.widget.flot", {
 				'left': x + 5
 		}).appendTo("body").fadeIn(200); 
 	}
-}
-	
-);
+});
+});
+require(["SimpleChart/widget/lib/flot/jquery_min","SimpleChart/widget/lib/flot/jquery_flot_min",
+ "SimpleChart/widget/lib/flot/jquery_flot", "SimpleChart/widget/lib/flot/jquery_flot_pie_min",
+ "SimpleChart/widget/lib/flot/jquery_flot_selection_min", "SimpleChart/widget/lib/flot/jquery_flot_stack_min",
+ "SimpleChart/widget/lib/flot/excanvas_min","SimpleChart/widget/flot"], function (jQuery) {});
